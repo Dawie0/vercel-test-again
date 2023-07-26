@@ -5,27 +5,29 @@ const cors = require('cors')
 const dotenv = require('dotenv')
 const mongoose = require('mongoose')
 const connectDB = require('./config/config.js')
-const client = connectDB()
+const Todo = require('./todoModel.js')
+// connectDB()
 
 dotenv.config()
 const app = express()
-const PORT = 4000
+const PORT = process.env.PORT || 5000
+
 app.use(express.json())
 app.use(cors())
 
-// const mongodbURI = process.env.MONGODB_URI
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopologu: true,
+})
 
-// const client = new MongoClient(mongodbURI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connection.on('connected', () => {
+    console.log('Connected to MongoDB')
+})
 
-// const connectToDatabase = async () => {
-//     try {
-//         await client.connect()
-//         console.log('Connected to MongoDB')
-//     }
-//     catch (error) {
-//         console.error('Error connecting to MongoDB:', error)
-//     }
-// }
+
+mongoose.connection.on("error", (err) => {
+    console.error("Error connecting to MongoDB:", err);
+  })
 
 
 app.listen(PORT, () => {
@@ -43,12 +45,7 @@ app.get('/about', (req, res) => {
 
 app.get('/todos', async (req, res) => {
     try {
-        const database = client.db('todos_database')
-        const collection = database.collection('todos')
-
-        const cursor = collection.find()
-        const documents = await cursor.toArray()
-
+        const todos = await Todos.find()
         res.json(documents)
     }
     catch (error) {
