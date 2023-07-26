@@ -7,7 +7,7 @@ const app = express()
 const PORT = 4000
 app.use(cors())
 
-const mongodbURI = "mongodb+srv://dawidfouriecohort123:Chaos0766!@todosdb.jq6lymy.mongodb.net/?retryWrites=true&w=majority"
+const mongodbURI = process.env.MONGODB_URI
 const client = new MongoClient(mongodbURI, { useNewUrlParser: true, useUnifiedTopology: true })
 
 const connectToDatabase = async () => {
