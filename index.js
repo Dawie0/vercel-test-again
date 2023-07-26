@@ -2,12 +2,15 @@
 const express = require('express')
 const cors = require('cors')
 const { MongoClient } = require('mongodb')
+const dotenv = require('dotenv')
 
+dotenv.config()
 const app = express()
 const PORT = 4000
 app.use(cors())
 
 const mongodbURI = process.env.MONGODB_URI
+
 const client = new MongoClient(mongodbURI, { useNewUrlParser: true, useUnifiedTopology: true })
 
 const connectToDatabase = async () => {
