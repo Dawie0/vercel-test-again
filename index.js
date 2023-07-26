@@ -3,6 +3,9 @@ const express = require('express')
 const cors = require('cors')
 // const { MongoClient } = require('mongodb')
 const dotenv = require('dotenv')
+const mongoose = require('mongoose')
+const connectDB = require('./config/config.js')
+const client = connectDB()
 
 dotenv.config()
 const app = express()
@@ -38,21 +41,21 @@ app.get('/about', (req, res) => {
   res.send('This is my about route..... ')
 })
 
-// app.get('/todos', async (req, res) => {
-//     try {
-//         const database = client.db('todos_database')
-//         const collection = database.collection('todos')
+app.get('/todos', async (req, res) => {
+    try {
+        const database = client.db('todos_database')
+        const collection = database.collection('todos')
 
-//         const cursor = collection.find()
-//         const documents = await cursor.toArray()
+        const cursor = collection.find()
+        const documents = await cursor.toArray()
 
-//         res.json(documents)
-//     }
-//     catch (error) {
-//         console.error('Error fetching TODOS:', error)
-//         res.sendStatus(500)
-//     }
-// })
+        res.json(documents)
+    }
+    catch (error) {
+        console.error('Error fetching TODOS:', error)
+        res.sendStatus(500)
+    }
+})
 
 // Export the Express API
 module.exports = app
