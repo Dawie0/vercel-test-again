@@ -46,7 +46,7 @@ app.get('/about', (req, res) => {
 app.get('/todos', async (req, res) => {
     try {
         const todos = await Todos.find()
-        res.json(documents)
+        res.json(todos)
     }
     catch (error) {
         console.error('Error fetching TODOS:', error)
