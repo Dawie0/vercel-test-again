@@ -15,8 +15,8 @@ app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
 app.use(cors())
 
-const jwtSecretKey = 'abcd123yourmom'
-const uri = 'mongodb+srv://dawidfouriecohort231:Chaos0766!@clusternumerodos.ljv9wwb.mongodb.net/?retryWrites=true&w=majority'
+const jwtSecretKey = process.env.JWT_SECRETKEY
+const uri = process.env.MONGODB_URI
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true })
 
 const generateToken = (user) => {
