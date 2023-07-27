@@ -19,6 +19,10 @@ app.use(cors())
 const uri = 'mongodb+srv://dawidfouriecohort231:Chaos0766!@clusternumerodos.ljv9wwb.mongodb.net/?retryWrites=true&w=majority'
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true })
 
+const generateToken = (user) => {
+    return jwt.sign({ id: user._id }, jwtSecretKey, { expiresIn: '1h' })
+}
+
 const connectToDatabase = async () => {
     try {
         await client.connect()
