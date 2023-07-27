@@ -2,11 +2,10 @@
 const express = require('express')
 const cors = require('cors')
 const { MongoClient } = require('mongodb')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 const dotenv = require('dotenv')
-// const mongoose = require('mongoose')
-// const connectDB = require('./config/config.js')
-// const Todo = require('./todoModel.js')
-// connectDB()
+
 
 dotenv.config()
 const app = express()
@@ -30,20 +29,6 @@ const connectToDatabase = async () => {
     }
 }
 
-// mongoose.connect("mongodb+srv://dawidfouriecohort123:Chaos0766!@clusternumerodos.ljv9wwb.mongodb.net/todos-database?retryWrites=true&w=majority", {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
-// })
-
-// mongoose.connection.on('connected', () => {
-//     console.log('Connected to MongoDB')
-// })
-
-
-// mongoose.connection.on("error", (err) => {
-//     console.error("Error connecting to MongoDB:", err);
-//   })
-
 
 app.listen(PORT, () => {
   console.log(`API listening on PORT ${PORT} `)
@@ -52,10 +37,6 @@ app.listen(PORT, () => {
 
 app.get('/', (req, res) => {
   res.send('Hey this is my API running 🥳')
-})
-
-app.get('/about', (req, res) => {
-  res.send('This is my about route..... ')
 })
 
 app.get('/todos', async (req, res) => {
@@ -74,16 +55,125 @@ app.get('/todos', async (req, res) => {
     }
 })
 
-// app.get('/todos', async (req, res) => {
-//     try {
-//         const todos = await Todo.find()
-//         res.json(todos)
-//     }
-//     catch (error) {
-//         console.error('Error fetching TODOS:', error)
-//         res.sendStatus(500)
-//     }
-// })
+app.post('/todos', async (req, res) => {
+    try {
+        const newTodo = req.body.todo
+        
+        const database = client.db('todos-database')
+        const collection = database.collection('todos')
+
+        const result = await collection.insertOne({ todo: newTodo })
+        console.log('Inserted TODO:', result)
+
+        res.sendStatus(201)
+    }
+    catch (error) {
+        console.error('Error adding TODO:', error)
+        res.sendStatus(500)
+    }
+})
+
+app.post('/users/register', async (req, res) => {
+    try {
+        const { username, password } = req.body.user
+
+        const database = client.db('todos-database')
+        const collection = database.collection('user_data')
+
+        const userExist = await collection.findOne({ 'user.username': username })
+        if (userExist) {
+            return res.status(400).json({ message: 'Username already exists' })
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10)
+
+        const newUser = {
+            user: {
+                username: username,
+                password: hashedPassword
+            }
+        }
+
+        const result = await collection.insertOne(newUser)
+
+        const token = generateToken(result)
+
+        res.status(201).json({ message: 'User registered successfully', token })
+    }
+    catch (error) {
+        console.error('Error adding user:', error)
+        res.sendStatus(500)
+    }
+})
+
+app.post('/users/login', async (req, res) => {
+    try {
+        const { username, password } = req.body.user
+
+        const database = client.db('todos-database')
+        const collection = database.collection('user_data')
+
+        const user = await collection.findOne({ 'user.username': username })
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid credentials' })
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.user.password)
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid credentials' })
+        }
+
+        const token = generateToken(user)
+
+        res.json({ message: 'Login successful', token })
+    }
+    catch (error) {
+        console.error('Error during login:', error)
+        res.sendStatus(500)
+    }
+})
+
+app.put('/todos/:id', async (req, res) => {
+    try {
+        const id = new ObjectId(req.params.id)
+        const updatedTodo = req.body.todo
+        
+        const database = client.db('todos-database')
+        const collection = database.collection('todos')
+
+        const result = await collection.updateOne(
+            { _id: id },
+            { $set: { todo: updatedTodo } }
+        )
+        console.log('ID: ', id)
+        console.log('Updated Todo: ', updatedTodo)
+        console.log('Updated Todo:', result)
+
+        res.sendStatus(200)
+    }
+    catch (error) {
+        console.error('Error updating TODO', error)
+        res.sendStatus(500)
+    }
+})
+
+app.delete('/todos/:id', async (req, res) => {
+    try {
+        const id = new ObjectId(req.params.id)
+
+        const database = client.db('todos-database')
+        const collection = database.collection('todos')
+
+        const result = await collection.deleteOne({ _id: id })
+        console.log('Deleted TODO:', result)
+        res.sendStatus(200)
+    }
+    catch(error) {
+        console.error('Error deleting TODO:', error)
+        res.sendStatus(500)
+    }
+})
+
 
 // Export the Express API
 module.exports = app
